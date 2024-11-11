@@ -7,6 +7,7 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/nabishec/referal_links/internal/storage/postgesql/migration"
+	"github.com/rs/zerolog/log"
 )
 
 type Database struct {
@@ -15,8 +16,12 @@ type Database struct {
 }
 
 func NewDatabase() (*Database, error) {
+	log.Info().Msg("Connecting to database")
+
+	log.Debug().Msg("Init database")
 	var database Database
-	config, err := NewDSN()
+
+	config, err := newDSN()
 	if err != nil {
 		return nil, err
 	}
@@ -25,16 +30,20 @@ func NewDatabase() (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	err = migration.MigrationsUp(database.DB, database.dataSourceName)
 	if err != nil {
 		return nil, err
 	}
 
+	log.Info().Msg("Сonnection to the database is successful")
 	return &database, err
 }
 
 func (db *Database) connectDatabase(config string) error {
-	const op = "internal.storage.postgresql.db.ConnectDatabase()"
+	const op = "internal.storage.postgresql.db.connectDatabase()"
+
+	log.Debug().Msg("Attempting to connect to database")
 
 	db.dataSourceName = config
 
@@ -43,12 +52,15 @@ func (db *Database) connectDatabase(config string) error {
 	if connectError != nil {
 		return fmt.Errorf("func:%s  error:%w", op, connectError)
 	}
-	return connectError
+
+	log.Debug().Msg("Connecting to database is successfully")
+	return nil
 }
 
 func (db *Database) PingDatabase() error {
 	const op = "internal.storage.postgresql.db.PingDatabase()"
 
+	log.Info().Msg("Attempting to ping Database")
 	if db.DB == nil {
 		return fmt.Errorf("func:%s  error:%s", op, "database isn`t established")
 	}
@@ -57,22 +69,27 @@ func (db *Database) PingDatabase() error {
 	if pingError != nil {
 		return fmt.Errorf("func:%s  error:%w", op, pingError)
 	}
+
+	log.Info().Msg("Ping database is successful")
 	return nil
 }
 
 func (db *Database) CloseDatabase() error {
 	const op = "internal.storage.postgresql.db.CloseDatabase()"
 
+	log.Info().Msg("Attempting to close database")
 	var closingError = db.DB.Close()
 	if closingError != nil {
 		return fmt.Errorf("func:%s  error:%w", op, closingError)
 	}
+	log.Info().Msg("Successful closing of database")
 	return nil
 }
 
-func NewDSN() (string, error) {
+func newDSN() (string, error) {
 	const op = "internal.storage.postgresql.db.NewDSN()"
 
+	log.Debug().Msg("Reading dsn from env variables")
 	dsnProtocol := os.Getenv("DB_PROTOCOL")
 	if dsnProtocol == "" {
 		return "", fmt.Errorf("func:%s  error:%s", op, "DB_PROTOCOL isn't set")
@@ -111,5 +128,6 @@ func NewDSN() (string, error) {
 	dsn := dsnProtocol + "://" + dsnUserName + ":" + dsnPassword + "@" +
 		dsnHost + ":" + dsnPort + "/" + dsnDBName + "?" + dsnOptions
 
+	log.Debug().Msg("Reading dsn is successful")
 	return dsn, nil
 }

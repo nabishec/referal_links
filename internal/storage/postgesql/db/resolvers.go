@@ -2,13 +2,17 @@ package db
 
 import (
 	"fmt"
+
 	"time"
 
 	"github.com/nabishec/referal_links/internal/models"
+	"github.com/rs/zerolog/log"
 )
 
 func (r *Database) AddUser(user *models.UserInfo) error {
 	const op = "internal.storage.postgresql.db.AddUser()"
+
+	log.Debug().Str("email", user.Email).Msg("Request to the database to add new user")
 
 	if _, err := r.FoundUserId(user); err != nil {
 		return fmt.Errorf("func:%s error:%w", op, err)
@@ -21,22 +25,32 @@ func (r *Database) AddUser(user *models.UserInfo) error {
 		return fmt.Errorf("func:%s  error:%w", op, err)
 	}
 
+	log.Debug().Msg("New user added to db")
+
 	return nil
 }
 
 func (r *Database) FoundUserId(user *models.UserInfo) (int64, error) {
 	op := "internal.storage.postgresql.db.FoundUserId()"
 
+	log.Debug().Str("email", user.Email).Msg("Found user id in db")
+
 	var userId int64
 	err := r.DB.QueryRow("SELECT id FROM users WHERE email = $1", user.Email).Scan(&userId)
 	if err != nil {
 		return 0, fmt.Errorf("func:%s  error:%w", op, err)
 	}
+
+	log.Debug().Int64("user", userId).Msg("found")
+
 	return userId, nil
 }
 
 func (r *Database) AddReferral(referralUser *models.UserInfo, email string) error {
 	op := "internal.storage.postgresql.db.AddReferral()"
+
+	log.Debug().Str("email", email).Msg("Request to the database to add a new referral")
+
 	//TODO transaction
 	if err := r.AddUser(referralUser); err != nil {
 		return fmt.Errorf("func:%s error:%w(%s)", op, err, "can't add in users table")
@@ -60,16 +74,23 @@ func (r *Database) AddReferral(referralUser *models.UserInfo, email string) erro
 		return fmt.Errorf("func:%s error:%w", op, err)
 	}
 
+	log.Debug().Msg("New referral added to db")
+
 	return nil
 }
 
 func (r *Database) FoundReferrals(referrerId int64) ([]*models.ReferralResponse, error) {
 	op := "internal.storage.postgresql.db.FoundReferrals()"
 
+	log.Debug().Int64("referrer", referrerId).Msg("Found referrals")
+
 	var referrals []*models.ReferralResponse
 	err := r.DB.Select(&referrals, "SELECT referral_name, date FROM referrals WHERE referrer_id = $1", referrerId)
 	if err != nil {
 		return nil, fmt.Errorf("func:%s error:%w", op, err)
 	}
+
+	log.Debug().Msg("Referrals found")
+
 	return referrals, nil
 }
