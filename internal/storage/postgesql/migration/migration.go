@@ -18,7 +18,7 @@ func MigrationsUp(db *sqlx.DB, dsn string) error {
 
 	log.Info().Msg("Launching migrations up")
 	if db == nil {
-		return fmt.Errorf("func:%s  error:%s", op, "database isn`t established")
+		return fmt.Errorf("%s:%s", op, "database isn`t established")
 	}
 
 	migrationDB, err := connectionForMigration(dsn)
@@ -54,7 +54,7 @@ func MigrationsDown(db *sqlx.DB, dsn string) error {
 	log.Info().Msg("Launching migrations down")
 
 	if db == nil {
-		return fmt.Errorf("func:%s  error:%s", op, "database isn`t established")
+		return fmt.Errorf("%s:%s", op, "database isn`t established")
 	}
 
 	migrationDB, err := connectionForMigration(dsn)
@@ -90,7 +90,7 @@ func connectionForMigration(dsn string) (*sqlx.DB, error) {
 	log.Debug().Msg("Creating a migration connection")
 	migration, err := sqlx.Connect("pgx", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("func:%s  error:%s(%s)", op, err, "failed to create connection for migrations")
+		return nil, fmt.Errorf("%s:%s(%s)", op, err, "failed to create connection for migrations")
 	}
 
 	log.Debug().Msg("Migration connection is successful")
@@ -103,7 +103,7 @@ func newMigrationDriver(db *sql.DB) (database.Driver, error) {
 	log.Debug().Msg("Creating driver for migrations")
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("func:%s  error:%s(%s)", op, err, "couldn't create driver")
+		return nil, fmt.Errorf("%s:%s(%s)", op, err, "couldn't create driver")
 	}
 
 	log.Debug().Msg("Migration driver creation is successful")
@@ -113,11 +113,11 @@ func newMigrationDriver(db *sql.DB) (database.Driver, error) {
 func closeMigration(driver database.Driver, migrationDB *sqlx.DB, op string) {
 	op += "closeMigration()"
 	if err := driver.Close(); err != nil {
-		log.Warn().Msgf("func:%s  error:%s", op, "migration's driver couldn't close")
+		log.Warn().Msgf("%s:%s", op, "migration's driver couldn't close")
 	}
 
 	if err := migrationDB.Close(); err != nil {
-		log.Warn().Msgf("func:%s  error:%s", op, "migration's driver couldn't close")
+		log.Warn().Msgf("%s:%s", op, "migration's driver couldn't close")
 	}
 }
 
@@ -130,7 +130,7 @@ func newMigrationInstance(driver database.Driver) (*migrate.Migrate, error) {
 		"file://internal/storage/migrations",
 		"postgres", driver)
 	if err != nil {
-		return nil, fmt.Errorf("func:%s  error:%s(%s)", op, err, "coudn't create migrate instance")
+		return nil, fmt.Errorf("%s:%s(%s)", op, err, "coudn't create migrate instance")
 	}
 
 	log.Debug().Msg("Migration instance creation is successful")
@@ -145,13 +145,13 @@ func startMigrationUp(migration *migrate.Migrate) error {
 
 	err := migration.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		return fmt.Errorf("func:%s  error:%s(%s)", op, err, "failed to apply migrations")
+		return fmt.Errorf("%s:%s(%s)", op, err, "failed to apply migrations")
 	}
 
 	if err == migrate.ErrNoChange {
-		log.Debug().Msgf("func:%s  error:%s", op, "no migrations to apply")
+		log.Debug().Msgf("%s:%s", op, "no migrations to apply")
 	} else {
-		log.Debug().Msgf("func:%s  error:%s", op, "migrations applied successfully")
+		log.Debug().Msgf("%s:%s", op, "migrations applied successfully")
 	}
 	return nil
 }
@@ -163,13 +163,13 @@ func startMigrationDown(migration *migrate.Migrate) error {
 	log.Debug().Msg("Attempting to migration down")
 
 	if err != nil && err != migrate.ErrNoChange {
-		return fmt.Errorf("func:%s  error:%s(%s)", op, err, "failed to apply migrations")
+		return fmt.Errorf("%s:%s(%s)", op, err, "failed to apply migrations")
 	}
 
 	if err == migrate.ErrNoChange {
-		log.Debug().Msgf("func:%s  error:%s", op, "no migrations to apply")
+		log.Debug().Msgf("%s:%s", op, "no migrations to apply")
 	} else {
-		log.Debug().Msgf("func:%s  error:%s", op, "migrations applied successfully")
+		log.Debug().Msgf("%s:%s", op, "migrations applied successfully")
 	}
 	return nil
 }

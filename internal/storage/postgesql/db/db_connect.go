@@ -50,7 +50,7 @@ func (db *Database) connectDatabase(config string) error {
 	var connectError error
 	db.DB, connectError = sqlx.Connect("pgx", db.dataSourceName)
 	if connectError != nil {
-		return fmt.Errorf("func:%s  error:%w", op, connectError)
+		return fmt.Errorf("%s:%w", op, connectError)
 	}
 
 	log.Debug().Msg("Connecting to database is successfully")
@@ -62,12 +62,12 @@ func (db *Database) PingDatabase() error {
 
 	log.Info().Msg("Attempting to ping Database")
 	if db.DB == nil {
-		return fmt.Errorf("func:%s  error:%s", op, "database isn`t established")
+		return fmt.Errorf("%s:%s", op, "database isn`t established")
 	}
 
 	var pingError = db.DB.Ping()
 	if pingError != nil {
-		return fmt.Errorf("func:%s  error:%w", op, pingError)
+		return fmt.Errorf("%s:%w", op, pingError)
 	}
 
 	log.Info().Msg("Ping database is successful")
@@ -80,7 +80,7 @@ func (db *Database) CloseDatabase() error {
 	log.Info().Msg("Attempting to close database")
 	var closingError = db.DB.Close()
 	if closingError != nil {
-		return fmt.Errorf("func:%s  error:%w", op, closingError)
+		return fmt.Errorf("%s:%w", op, closingError)
 	}
 	log.Info().Msg("Successful closing of database")
 	return nil
@@ -92,37 +92,37 @@ func newDSN() (string, error) {
 	log.Debug().Msg("Reading dsn from env variables")
 	dsnProtocol := os.Getenv("DB_PROTOCOL")
 	if dsnProtocol == "" {
-		return "", fmt.Errorf("func:%s  error:%s", op, "DB_PROTOCOL isn't set")
+		return "", fmt.Errorf("%s:%s", op, "DB_PROTOCOL isn't set")
 	}
 
 	dsnUserName := os.Getenv("DB_USER")
 	if dsnUserName == "" {
-		return "", fmt.Errorf("func:%s  error:%s", op, "DB_USER isn't set")
+		return "", fmt.Errorf("%s:%s", op, "DB_USER isn't set")
 	}
 
 	dsnPassword := os.Getenv("DB_PASSWORD")
 	if dsnPassword == "" {
-		return "", fmt.Errorf("func:%s  error:%s", op, "DB_PASSWORD isn't set")
+		return "", fmt.Errorf("%s:%s", op, "DB_PASSWORD isn't set")
 	}
 
 	dsnHost := os.Getenv("DB_HOST")
 	if dsnHost == "" {
-		return "", fmt.Errorf("func:%s  error:%s", op, "DB_HOST isn't set")
+		return "", fmt.Errorf("%s:%s", op, "DB_HOST isn't set")
 	}
 
 	dsnPort := os.Getenv("DB_PORT")
 	if dsnPort == "" {
-		return "", fmt.Errorf("func:%s  error:%s", op, "DB_PORT isn't set")
+		return "", fmt.Errorf("%s:%s", op, "DB_PORT isn't set")
 	}
 
 	dsnDBName := os.Getenv("DB_NAME")
 	if dsnDBName == "" {
-		return "", fmt.Errorf("func:%s  error:%s", op, "DB_NAME isn't set")
+		return "", fmt.Errorf("%s:%s", op, "DB_NAME isn't set")
 	}
 
 	dsnOptions := os.Getenv("DB_OPTIONS")
 	if dsnOptions == "" {
-		return "", fmt.Errorf("func:%s  error:%s", op, "DB_OPTIONS isn't set")
+		return "", fmt.Errorf("%s:%s", op, "DB_OPTIONS isn't set")
 	}
 
 	dsn := dsnProtocol + "://" + dsnUserName + ":" + dsnPassword + "@" +

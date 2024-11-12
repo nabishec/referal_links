@@ -9,8 +9,10 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
+	"github.com/nabishec/referal_links/internal/middleware/logger"
 	"github.com/nabishec/referal_links/internal/storage/postgesql/db"
 )
 
@@ -31,31 +33,34 @@ func main() {
 	}
 
 	//TODO: init config
-	err := godotenv.Load("../../configs/configuration.env")
+	err := godotenv.Load("./configs/configuration.env")
 	if err != nil {
 		log.Error().Err(err).Msg("don't found configuration")
+		os.Exit(1)
 	}
 
-	_ = err
 	//TODO: init storage postgresql
 	log.Info().Msg("Init storage")
 	storage, err := db.NewDatabase()
 	if err != nil {
-		key, err := ErrReader(err)
-		log.Error().AnErr(key, err).Msg("Failed init storage")
+		log.Error().AnErr(ErrReader(err)).Msg("Failed init storage")
 		os.Exit(1)
 	}
-	_, _ = storage, err
+	log.Info().Msg("Storage init successful")
+	_ = storage
 
 	router := chi.NewRouter()
-
-	_ = router
+	router.Use(middleware.RequestID)
+	router.Use(logger.New())
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
+	_, _ = router, storage
 	//TODO: run-server
-
+	log.Warn().Msg("Program ended")
 }
 
 func ErrReader(err error) (f string, e error) {
-	str := strings.Split(err.Error(), "  ")
+	str := strings.Split(err.Error(), ":")
 	f = str[0]
 	e = fmt.Errorf(str[1])
 	return f, e
